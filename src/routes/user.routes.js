@@ -29,19 +29,16 @@ router.route("/register").post(
     ]),
     registerUser
 );
-
 router.route("/login").post(loginUser);
 
 // secured routes
 router.route("/logout").post(verifyJwt, logOutUser);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/change-password").post(verifyJwt, changePassword);
-router.route("/get-current-user").post(verifyJwt, getCurrentUser);
-router.route("/update-user-details").post(verifyJwt, updateUserDetails);
-router
-    .route("/update-avatar")
-    .post(verifyJwt, upload.single("avatar"), updateUserAvatar);
-router.route("/c/:username").get(verifyJwt, getUserChannelProfile);
+router.route("/get-current-user").get(verifyJwt, getCurrentUser);
+router.route("/update-user-details").patch(verifyJwt, updateUserDetails);
+router.route("/update-avatar").patch(verifyJwt, upload.single("avatar"), updateUserAvatar);
+router.route("/channel-profile/:username").get(verifyJwt, getUserChannelProfile);
 router.route("/history").get(verifyJwt, getWatchHistory);
 
 export default router;

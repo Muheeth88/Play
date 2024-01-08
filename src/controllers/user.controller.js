@@ -1,10 +1,10 @@
-
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -120,9 +120,9 @@ const logOutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: undefined,
-        accessToken: undefined,
+      $unset: {
+        refreshToken: 1,
+        accessToken: 1,
       },
     },
     { new: true }
@@ -143,7 +143,7 @@ const logOutUser = asyncHandler(async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
     const incomingRefreshToken =
-      req.cookies.refreshAccessToken || req.body.refreshAccessToken;
+      req.cookies.refreshToken || req.body.refreshToken;
 
     if (!incomingRefreshToken) {
       throw new ApiError(401, "Unauthorized Request");
@@ -204,7 +204,9 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  return res.status(200).json(200, res.user, "user fetched Successfully");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "User Fetched Successfully"));
 });
 
 const updateUserDetails = asyncHandler(async (req, res) => {
@@ -345,14 +347,14 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                     avatar: 1,
                   },
                 },
-                {
-                  $addFields: {
-                    owner: {
-                      $first: $owner,
-                    },
-                  },
-                },
               ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
             },
           },
         ],
